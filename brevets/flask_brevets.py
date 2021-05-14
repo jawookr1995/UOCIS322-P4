@@ -57,6 +57,11 @@ def _calc_times():
     # Right now, only the current time is passed as the start time
     # and control distance is fixed to 200
     # You should get these from the webpage!
+    distance = request.args.get('distance', 0 , type = int)
+    # get start date and time, the date and time for boxes in host page
+    sdate = request.args.get('sdate', "", type = str)
+    stime = request.args.get('stiem', "", type = str)
+    starting_time = arrow.get(sdate + " "  + stime, ' YYYY-MM-DD HH:mm')
     open_time = acp_times.open_time(km, 200, arrow.now().isoformat).format('YYYY-MM-DDTHH:mm')
     close_time = acp_times.close_time(km, 200, arrow.now().isoformat).format('YYYY-MM-DDTHH:mm')
     result = {"open": open_time, "close": close_time}
