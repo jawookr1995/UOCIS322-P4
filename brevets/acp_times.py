@@ -7,14 +7,6 @@ and https://rusa.org/pages/rulesForRiders
 import arrow
 
 
-minSpeedT = {200: 15.0, 300: 15.0, 400: 15.0, 600: 11.428, 1000: 13.333}
-maxSpeedT = {200: 34.0, 300: 32.0, 400: 30.0, 600: 28.0, 1000: 26.0}
-
-# only the max and min speeds, no keys like above
-# shown in descending order
-minSpeedOnly = [15.0, 15.0, 15.0, 11.428, 13.333]
-maxSpeedOnly = [34.0, 32.0, 30.0, 28.0, 26.0]
-
 
 def open_time(control_dist_km, brevet_dist_km, brevet_start_time):
     """
@@ -30,72 +22,34 @@ def open_time(control_dist_km, brevet_dist_km, brevet_start_time):
        This will be in the same time zone as the brevet start time.
     """
 
-    # This is to account for when the route leaks over slightly,
-    # like in example 1 where they take 205 back down to 200
-    # will set the route back to the next highest interval and
-    # 5 or whatever number won't be counted
-    if (brevet_dist_km < control_dist_km):
-        control_dist_km = brevet_dist_km
+    speed_dic = {"0": 34, "200": 34, "400": 32, "600": 30, "1000": 28, "1300": 26}
+    time_dic = {"0": 0, "200": 200 / 34, "400": 100 / 32, "600": 200 / 30, "1000": 400 / 28, "1300": 300 / 26}
+    control_point = [0, 200, 400, 600, 1000, 1300]
+    control_time = 0
+    addition_time = 0
+    total_time = 0
 
-    # we are now going to get the time for the route with our corr.
-    # max values
-    rawTime = timeCalculator(control_dist_km, maxSpeedOnly)
+    # go to each pair in dictionary
+    for i in range(len(time_dic)):
+        if (control_point[i] <= brevet_dist_km):  # check whether the user input is the total distance of the brevet
+            if (control_point[i] <= control_dist_km):  # check the key value of the pair
+                control_time += time_dic[str(control_point[
+                                                 i])]  # add the the value of that key to the total_time. #This method is quite redundent, since it have to loop in 5 brevet_dist_km every time.
 
-    # once we know how much time the route took, simply add it to the
-    # initial time and we are good to go
-    finalTime = timeAdder(rawTime, brevet_start_time)
-    return finalTime
+            else:
+                addition_time = (control_dist_km - control_point[i - 1]) / speed_dic[str(control_point[i])]
+            total_time = control_time + addition_time
+            total_second = total_time * 3600 + 30
 
+            # end of adding time when reach the brevet_dist_km, as long as reach the brevet_dist_km, do nothing to the data.
 
-# adds time traveled to initial time we had
-def timeAdder(rawTime, initialTime):
-    # multiply by 60 to get into minutes. Then adding .5 will ensure that
-    # any left over gets rounded, as changing it to an int with the command
-    # below will take care of any decimal still there
-    # **testing appeared to make the .5 necessary to round up and get values
-    # more in line with the actual calculator
-    totMinutes = ((rawTime * 60) + .5)
-    int(totMinutes)
+    # take starttime, turn to the arrow object,
+    open_t = arrow.get(brevet_start_time)
+    control_open = open_t.shift(seconds=+total_second)
 
-    # use our arrow functions to add the minutes from timeCalculator() and
-    # translate that into a formatted time
-    finalTime = arrow.get(initialTime).shift(minutes=+totMinutes).isoformat()
-
-    return finalTime
+    return control_open.isoformat()
 
 
-# calculates the km traveled into the form of time
-def timeCalculator(kmGiven, speedTable):
-    # to help visualize:
-    # minSpeedOnly = [15.0, 15.0, 15.0, 11.428, 13.333]
-    # maxSpeedOnly = [34.0, 32.0, 30.0, 28.0, 26.0]
-
-    # keeps on chopping off 200 and going down the speeds
-    # initializers
-    x = 0
-    totTime = 0
-
-    # There are intervals of 200. So essentially what this function
-    # does is cycle through these intervals. So long as its greater than
-    # 200 (which signifies a new interval) we will keep cycling through the
-    # main part of the min/max speed values. We also have x < 3 b/c we don't
-    # want it to somehow run more than 4 times inside the loop (as the last
-    # line before the return statement is the 5th, if any, pass through). This
-    # is b/c our min/max only have 5 speed intervals each.
-    # It will keep going deeper into min/maxSpeedOnly until it runs out from
-    # being chopped off by 200 for each interval pass.
-    while kmGiven > 200:
-        if x < 3:
-            totTime = totTime + (200 / speedTable[x])
-            x += 1
-            kmGiven = kmGiven - 200
-
-    # 4th pass right here or 1st if less than 200
-    # this will be 200 or the remainder (something less than 200) for
-    # the final interval pass to evaluate
-    totTime = totTime + (kmGiven / speedTable[x])
-
-    return totTime
 
 
 def close_time(control_dist_km, brevet_dist_km, brevet_start_time):
@@ -113,14 +67,36 @@ def close_time(control_dist_km, brevet_dist_km, brevet_start_time):
     """
     # this is to account for the 0 value starting point where the original
     # calculator webpage adds an hour on for this part, so follow suit here
-    if control_dist_km == 0:
-        finalTime = timeAdder(1, brevet_start_time)
-        return finalTime
+    speed_dic = {"0": 15, "200": 15, "300": 15, "400": 15, "600": 15, "1000": 11.428}
+    time_dic = {"0": 0, "200": 200 / 15, "300": 100 / 15, "400": 100 / 15, "600": 200 / 15, "1000": 400 / 11.428}
+    control_point = [0, 200, 300, 400, 600, 1000]
+    fix_end = {"0.0": 1, "200.0": 13.5, "300.0": 20, "400.0": 27, "600.0": 40, "1000.0": 75}
+    control_time = 0
+    addition_time = 0
+    total_time = 0
+
+    if (control_dist_km == brevet_dist_km):
+        total_time += fix_end[str(control_dist_km)]
+    elif (control_dist_km == 0):
+        total_time = 1
 
     else:
+        # go to each pair in dictionary
+        for i in range(len(time_dic)):
+            if (control_point[i] <= brevet_dist_km):  # check whether the user input is the total distance of the brevet
+                if (control_point[i] <= control_dist_km):  # check the key value of the pair
+                    control_time += time_dic[str(control_point[
+                                                     i])]  # add the the value of that key to the total_time. #This method is quite redundent, since it have to loop in 5 brevet_dist_km every time.
 
-        # very similar to open_time. Calculate the time w/ the intervals,
-        # then add it to the initial time and return
-        rawTime = timeCalculator(control_dist_km, minSpeedOnly)
-        finalTime = timeAdder((rawTime), brevet_start_time)
-        return finalTime
+                else:
+                    addition_time = (control_dist_km - control_point[i - 1]) / speed_dic[str(control_point[i])]
+                total_time = control_time + addition_time
+            # total_time = control_time + addition_time
+            # print ("This is total time: "+ str(total_time))
+
+            # end of adding time when reach the brevet_dist_km, as long as reach the brevet_dist_km, do nothing to the data.
+    # take starttime, turn to the arrow object,
+    close_t = arrow.get(brevet_start_time)
+    control_close = close_t.shift(hours=+total_time)
+
+    return control_close.isoformat()

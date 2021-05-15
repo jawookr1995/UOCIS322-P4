@@ -117,21 +117,29 @@
 
             function calc_times(control) {
             var km = control.find("input[name='km']").val();
-            var open_time_field = control.find("input[name='open']");
-            var close_time_field = control.find("input[name='close']");
+            var brevet_dist_km = $("#brevet_dist_km").val(); //dropdown list
+            console.log("This is brevet_dist_km: " + brevet_dist_km);
 
             //grab our starting data, time and distance from flask_brevets.py
-            var sdate = $("#begin_date").val();
-            var stime = $("#begin_time").val();
-            var distance = $("#brevet_dist_km").val();
+            var begin_date = $("#begin_date").val();
+            var begin_time = $("#begin_time").val();
+            console.log("This is begin_date: "+begin_date+ " ; this is begin_time: "+begin_time);
+            var brevet_start_time = moment(begin_date + ' ' + begin_time).format("YYYY-MM-DD HH:MM");
+            console.log("This is brevet_start_time "+brevet_start_time);
 
+            var open_time_field = control.find("input[name='open']");
+            var close_time_field = control.find("input[name='close']");
+            console.log(km);
+            console.log(brevet_dist_km);
+            console.log(brevet_start_time);
             //add these values into our getJSON
-            $.getJSON(TIME_CALC_URL, { km: km, sdate: sdate, stime: stime, distance: distance},
+            $.getJSON(TIME_CALC_URL, { km: km, brevet_dist_km: brevet_dist_km, brevet_start_time: brevet_start_time},
                // response handler
                function(data) {
                   var times = data.result;
-                  console.log("Got a response: " +  times);
+                  console.log("Got a response: " +  JSON.stringify(times));
                   console.log("Response.open = " + times.open);
+                  console.log("moment time: " + moment(times.open));
                   open_time_field.val( moment(times.open).format("ddd M/D H:mm"));
                   close_time_field.val( moment(times.close).format("ddd M/D H:mm"));
                } // end of handler function

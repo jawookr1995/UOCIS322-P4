@@ -49,33 +49,22 @@ def _calc_times():
     described at https://rusa.org/octime_alg.html.
     Expects one URL-encoded argument, the number of miles.
     """
-    app.logger.debug("Got a JSON request")
-    km = request.args.get('km', 999, type=float)
-    app.logger.debug("km={}".format(km))
+    app.logger.info("Got a JSON request")
+    km = request.args.get('km', 0, type=float)  # control_disk_km
+    brevet_dist_km = request.args.get("brevet_dist_km", 0, type=float)
+    brevet_start_time = request.args.get("brevet_start_time", "2017-01-01T00:00:00",
+                                         type=str)  # Q: Is String the correct type?
+    app.logger.info("km={}".format(km))
+    app.logger.debug("brevet_dist_km={}".format(brevet_dist_km))
+    app.logger.debug("brevet_start_time={}".format(brevet_start_time))
     app.logger.debug("request.args: {}".format(request.args))
-
-    # select brevet distance, this is our distance box that we will
-    # get user input from
-    # we will see the below again in the getJSON call in calc.html
-    distance = request.args.get('distance', 0, type=int)
-
-    # get start date and time, and then combine with arrow into one date/moment
-    # these are our boxes for date and time on host page
-    # similar to getting km except string instead of float
-    sdate = request.args.get('sdate', "", type=str)
-    stime = request.args.get('stime', "", type=str)
-    starting_time = arrow.get(sdate + " " + stime, 'dddM/D H:mm')
-
     # FIXME: These probably aren't the right open and close times
     # and brevets may be longer than 200km
-    # we can now replace (arrow.now().isoformat) with starting_time as we are able
-    # to collect the starting/initial time from the user. Same goes for 200, can
-    # be replaced with "distance" aka user input
-    open_time = acp_times.open_time(km, distance, starting_time)
-    close_time = acp_times.close_time(km, distance, starting_time)
-    # use arrow for our time and format properly here now so it displays in the boxes correctly
-    result = {"open": arrow.get(open_time).format('ddd M/D H:mm'),
-              "close": arrow.get(close_time).format('ddd M/D H:mm')}
+    open_time = acp_times.open_time(km, brevet_dist_km, brevet_start_time)
+    print("This is open time in flask.py: {}".format(open_time))
+    close_time = acp_times.close_time(km, brevet_dist_km, brevet_start_time)
+    result = {"open": open_time, "close": close_time}
+    app.logger.debug("Sending results: {}".format(result))
     return flask.jsonify(result=result)
 
 
