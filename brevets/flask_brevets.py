@@ -17,7 +17,6 @@ import logging
 ###
 app = flask.Flask(__name__)
 CONFIG = config.configuration()
-app.secret_key = CONFIG.SECRET_KEY
 
 ###
 # Pages
