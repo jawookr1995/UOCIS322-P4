@@ -6,9 +6,15 @@ and https://rusa.org/pages/rulesForRiders
 """
 import arrow
 
-MAX_TIME = {200:[13, 30], 300: [20, 00], 400: [27, 00], 600: [40, 00], 1000: [75, 00]}
+#tables with locations and their min/max speeds
+minSpeedT = {200:15.0, 300:15.0, 400:15.0, 600:11.428, 1000:13.333}
+maxSpeedT = {200:34.0, 300:32.0, 400:30.0, 600:28.0, 1000:26.0}
 
-B_TABLE = [(200,15,34),(400,15,32),(600,15,30),(1000,11.428,28),(1300,13.333,26)]
+#only the max and min speeds, no keys like above
+#shown in descending order
+minSpeedOnly = [15.0, 15.0, 15.0, 11.428, 13.333]
+maxSpeedOnly = [34.0, 32.0, 30.0, 28.0, 26.0]
+
 
 def open_time(control_dist_km, brevet_dist_km, brevet_start_time):
     """
