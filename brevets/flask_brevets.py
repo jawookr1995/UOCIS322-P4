@@ -50,20 +50,18 @@ def _calc_times():
     Expects one URL-encoded argument, the number of miles.
     """
     app.logger.debug("Got a JSON request")
-    km = request.args.get('km', 999, type=float)
-    app.logger.debug("km={}".format(km))
+    json_dict = request.args  # Get the whole dictionary from request.args.
     app.logger.debug("request.args: {}".format(request.args))
-    # FIXME!
-    # Right now, only the current time is passed as the start time
-    # and control distance is fixed to 200
-    # You should get these from the webpage!
-    distance = request.args.get('distance', 0 , type = int)
-    # get start date and time, the date and time for boxes in host page
-    sdate = request.args.get('sdate', "", type = str)
-    stime = request.args.get('stiem', "", type = str)
-    starting_time = arrow.get(sdate + " "  + stime, ' YYYY-MM-DD HH:mm')
-    open_time = acp_times.open_time(km, 200, arrow.now().isoformat).format('YYYY-MM-DDTHH:mm')
-    close_time = acp_times.close_time(km, 200, arrow.now().isoformat).format('YYYY-MM-DDTHH:mm')
+
+    km = int(json_dict['km']) or 0  # Extract the Control
+    brevet_dist = int(json_dict['brevet_dist']) or 200  # Extract the whole brevet distance
+    # Extract brevet begin time.
+    brevet_begin = json_dict['brevet_begin'] or arrow.now().isoformat()
+
+    # Use Fail if input is too large.
+    open_time = acp_times.open_time(km, brevet_dist, brevet_begin) or "Fail"
+    close_time = acp_times.close_time(km, brevet_dist, brevet_begin) or "Fail"
+
     result = {"open": open_time, "close": close_time}
     return flask.jsonify(result=result)
 
