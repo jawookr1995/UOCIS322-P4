@@ -119,14 +119,19 @@
                var km = control.find("input[name='km']").val();
                var open_time_field = control.find("input[name='open']");
                var close_time_field = control.find("input[name='close']");
+               var sel = document.getElementById('brevet_dist_km');
+               var opt = sel.options[sel.selectedIndex];
+               var maxkm = opt.value;
+               console.log("maxkm: " + maxkm);
+               var dateControl = document.querySelector('input[type="date"]');
+               var timeControl = document.querySelector('input[type="time"]');
+               var date_time = dateControl.value + " " + timeControl.value + ":00";
+               date_time = moment(date_time, moment.ISO_8601).format();
+               console.log("date_time: " + date_time);
+               var target = control.find("p.n")
 
-               //grab our starting data, time and distance from flask_brevets.py
-               var sdate = $("#begin_date").val();
-               var stime = $("#begin_time").val();
-               var distance = $("#brevet_dist_km").val();
-
-               //add these values into our getJSON
-               $.getJSON(TIME_CALC_URL, { km: km, sdate: sdate, stime: stime, distance: distance},
+               if (km < (maxkm * 1.05)) {
+                  $.getJSON(TIME_CALC_URL, { km: km, maxkm: maxkm, date_time: date_time },
                   // response handler
                   function(data) {
                      var times = data.result;
@@ -135,8 +140,16 @@
                      open_time_field.val( moment(times.open).format("ddd M/D H:mm"));
                      close_time_field.val( moment(times.close).format("ddd M/D H:mm"));
                   } // end of handler function
-               );// End of getJSON
-               }
+                  );// End of getJSON
+                  target.html("&nbsp;")
+               } else {
+                  //set notes here!
+               target.html("The distance is further than Brevet distance!")
+               control.find("input[name='miles']").val("");
+               control.find("input[name='km']").val("");
+            }
+
+         }
 
             $(document).ready(function(){
              // Do the following when the page is finished loading
