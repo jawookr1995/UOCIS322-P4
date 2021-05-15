@@ -17,6 +17,7 @@ import logging
 ###
 app = flask.Flask(__name__)
 CONFIG = config.configuration()
+app.secret_key = CONFIG.SECRET_KEY
 
 ###
 # Pages
@@ -33,7 +34,6 @@ def index():
 @app.errorhandler(404)
 def page_not_found(error):
     app.logger.debug("Page not found")
-    flask.session['linkback'] = flask.url_for("index")
     return flask.render_template('404.html'), 404
 
 
