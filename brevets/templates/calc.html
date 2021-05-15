@@ -115,44 +115,28 @@
             var SCRIPT_ROOT = {{ request.script_root|tojson|safe }} ;
             var TIME_CALC_URL = SCRIPT_ROOT + "/_calc_times";
 
-            // Pass calctimes a <td> element containing the data for a control.
-            // It extracts the distance and calls the server to get times to
-            // fill in open and close times in a human-readable format.
-            // (If we want to also keep the ISO-formatted times, we'll need to
-            // stash them in hidden fields.)
             function calc_times(control) {
-               var km = control.find("input[name='km']").val();
-               // The whole distance of this brevet.
-               var brevet_dist = $('#brevet_dist_km option:selected').val();
-               // Time in ISO format when the brevet officially begins.
-               var brevet_begin = new Date($('#begin_date').val() + " " + $(' #begin_time').val()).toISOString();
-               var open_time_field = control.find("input[name='open']");
-               var close_time_field = control.find("input[name='close']");
+            var km = control.find("input[name='km']").val();
+            var open_time_field = control.find("input[name='open']");
+            var close_time_field = control.find("input[name='close']");
 
-               $.getJSON(TIME_CALC_URL, { km: km, brevet_dist: brevet_dist, brevet_begin: brevet_begin},
+            //grab our starting data, time and distance from flask_brevets.py
+            var sdate = $("#begin_date").val();
+            var stime = $("#begin_time").val();
+            var distance = $("#brevet_dist_km").val();
+
+            //add these values into our getJSON
+            $.getJSON(TIME_CALC_URL, { km: km, sdate: sdate, stime: stime, distance: distance},
                // response handler
                function(data) {
                   var times = data.result;
                   console.log("Got a response: " +  times);
                   console.log("Response.open = " + times.open);
-                  console.log("Response.close = " + times.close);
-                  if (times.open === "Fail"){    // If entered Control Point is beyond the brevet distance.
-                     document.getElementsByClassName('notes')[0].innerHTML = "" +
-                        "Control Point is beyond the additional 20% threshold of the total brevet distance." +
-                        "Please refresh the page to continue using."
-                  }else {
-                     open_time_field.val( moment(times.open).format("ddd M/D H:mm"));
-                     close_time_field.val( moment(times.close).format("ddd M/D H:mm"));
-                  }
+                  open_time_field.val( moment(times.open).format("ddd M/D H:mm"));
+                  close_time_field.val( moment(times.close).format("ddd M/D H:mm"));
                } // end of handler function
-             );// End of getJSON
+            );// End of getJSON
             }
-
-    // Clean cache on refresh.
-    function resetForms() {
-        document.forms['brevet'].reset();
-    }
-
 
             $(document).ready(function(){
              // Do the following when the page is finished loading
