@@ -53,7 +53,7 @@ def _calc_times():
     km = request.args.get('km', 0, type=float)  # control_disk_km
     brevet_dist_km = request.args.get("brevet_dist_km", 0, type=float)
     brevet_start_time = request.args.get("brevet_start_time", "2017-01-01T00:00:00",
-                                         type=str)  # Q: Is String the correct type?
+                                         type=str)
     app.logger.info("km={}".format(km))
     app.logger.debug("brevet_dist_km={}".format(brevet_dist_km))
     app.logger.debug("brevet_start_time={}".format(brevet_start_time))

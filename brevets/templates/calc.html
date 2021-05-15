@@ -124,7 +124,7 @@
             var begin_date = $("#begin_date").val();
             var begin_time = $("#begin_time").val();
             console.log("This is begin_date: "+begin_date+ " ; this is begin_time: "+begin_time);
-            var brevet_start_time = moment(begin_date + ' ' + begin_time).format("YYYY-MM-DD HH:MM");
+            var brevet_start_time = begin_date + 'T' + begin_time+ ":00"+"-07:00";
             console.log("This is brevet_start_time "+brevet_start_time);
 
             var open_time_field = control.find("input[name='open']");
