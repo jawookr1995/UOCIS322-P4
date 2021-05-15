@@ -64,7 +64,7 @@ def _calc_times():
     # similar to getting km except string instead of float
     sdate = request.args.get('sdate', "", type=str)
     stime = request.args.get('stime', "", type=str)
-    starting_time = arrow.get(sdate + " " + stime, 'YYYY-MM-DD HH:mm')
+    starting_time = arrow.get(sdate + " " + stime, 'dddM/D H:mm')
 
     # FIXME: These probably aren't the right open and close times
     # and brevets may be longer than 200km
