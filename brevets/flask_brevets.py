@@ -49,23 +49,23 @@ def _calc_times():
     described at https://rusa.org/octime_alg.html.
     Expects one URL-encoded argument, the number of miles.
     """
-    app.logger.info("Got a JSON request")
-    km = request.args.get('km', 0, type=float)  # control_disk_km
-    brevet_dist_km = request.args.get("brevet_dist_km", 0, type=float)
-    brevet_start_time = request.args.get("brevet_start_time", "2017-01-01T00:00:00",
-                                         type=str)
-    app.logger.info("km={}".format(km))
-    app.logger.debug("brevet_dist_km={}".format(brevet_dist_km))
-    app.logger.debug("brevet_start_time={}".format(brevet_start_time))
-    app.logger.debug("request.args: {}".format(request.args))
-    # FIXME: These probably aren't the right open and close times
-    # and brevets may be longer than 200km
-    open_time = acp_times.open_time(km, brevet_dist_km, brevet_start_time)
-    print("This is open time in flask.py: {}".format(open_time))
-    close_time = acp_times.close_time(km, brevet_dist_km, brevet_start_time)
+    app.logger.debug("Got a JSON request");
+
+    # Get args
+    km = request.args.get('km', 0, type=float)
+    distance = request.args.get('distance', 0, type=float)
+    date = request.args.get('date', 0, type=str)
+    time = request.args.get('time', 0, type=str)
+
+    # format date_time
+    date_time = date + ' ' + time + ':00'
+    arrow_time = arrow.get(date_time, 'YYYY-MM-DD HH:mm:ss')
+
+    open_time = acp_times.open_time(km, distance, arrow_time.isoformat())
+    close_time = acp_times.close_time(km, distance, arrow_time.isoformat())
     result = {"open": open_time, "close": close_time}
-    app.logger.debug("Sending results: {}".format(result))
-    return flask.jsonify(result=result)
+
+    return jsonify(result=result)
 
 
 #############
