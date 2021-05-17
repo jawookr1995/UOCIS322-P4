@@ -7,41 +7,13 @@ and https://rusa.org/pages/rulesForRiders
 import arrow
 
 
-def _min_max_time(control_dist_km, is_max):
-    dist_list = [0, 200, 400, 600, 1000]
-    min_speed_list = [15, 15, 15, 11.428, 13.333]
-    max_speed_list = [34, 32, 30, 28, 26]
+min_speed = [(0, 200, 15), (200, 400, 15), (400, 600, 15),
+             (600, 1000, 11.428), (1000, 1300, 13.333)]
+max_speed = [(0, 200, 34), (200, 400, 32), (400, 600, 30),
+             (600, 1000, 28), (1000, 1300, 28)]
 
-    for i in range(5):
-        if dist_list[i] > control_dist_km:
-            break
-
-    ret = 0
-    for j in range(i + 1):
-        if j != 0:
-            prev_dist = dist_list[j - 1]
-            if is_max:
-                speed = min_speed_list[j - 1]
-            else:
-                speed = max_speed_list[j - 1]
-        else:
-            prev_dist = 0
-            if is_max:
-                speed = min_speed_list[0]
-            else:
-                speed = max_speed_list[0]
-        if j < i:
-            if is_max:
-                ret += (dist_list[j] - prev_dist) / speed
-            else:
-                ret += (dist_list[j] - prev_dist) / speed
-        else:
-            if is_max:
-                ret += (control_dist_km - prev_dist) / speed
-            else:
-                ret += (control_dist_km - prev_dist) / speed
-
-    return ret
+final_close = {200: 13.5, 300: 20, 400: 27, 600: 40, 1000: 75}
+max_dist = 1300
 
 
 def open_time(control_dist_km, brevet_dist_km, brevet_start_time):
@@ -57,10 +29,19 @@ def open_time(control_dist_km, brevet_dist_km, brevet_start_time):
        An ISO 8601 format date string indicating the control open time.
        This will be in the same time zone as the brevet start time.
     """
-    dt = arrow.get(brevet_start_time)
-    total_time = _min_max_time(control_dist_km, False)
-    dt = dt.shift(hours=total_time)
-    return dt.isoformat()
+
+    start_time = arrow.get(brevet_start_time)
+    elapsed_hours = 0
+    distance_left = control_dist_km
+    for from_dist, to_dist, speed in max_speed:
+        seg_length = to_dist - from_dist
+        if distance_left > seg_length:
+            elapsed_hours += seg_length / speed
+            distance_left -= seg_length
+        else:
+            elapsed_hours += distance_left / speed
+            open_time = start_time.shift(hours=elapsed_hours)
+            return open_time.isoformat()
 
 
 def close_time(control_dist_km, brevet_dist_km, brevet_start_time):
@@ -76,7 +57,21 @@ def close_time(control_dist_km, brevet_dist_km, brevet_start_time):
        An ISO 8601 format date string indicating the control close time.
        This will be in the same time zone as the brevet start time.
     """
-    dt = arrow.get(brevet_start_time)
-    total_time = _min_max_time(control_dist_km, True)
-    dt = dt.shift(hours=total_time)
-    return dt.isoformat()
+    start_time = arrow.get(brevet_start_time)
+    if control_dist_km >= brevet_dist_km:
+        duration = final_close[brevet_dist_km]
+        finish_time = start_time.shift(hours=duration)
+        return finish_time.isoformat()
+    elapsed_hours = 0
+    distance_left = control_dist_km
+    for from_dist, to_dist, speed in min_speed:
+        seg_length = to_dist - from_dist
+        if distance_left > seg_length:
+            elapsed_hours += seg_length / speed
+            distance_left -= seg_length
+        else:
+            elapsed_hours += distance_left / speed
+            cut_time = start_time.shift(hours=elapsed_hours)
+            return cut_time.isoformat()
+
+    return arrow.now().isoformat()
