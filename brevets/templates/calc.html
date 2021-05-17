@@ -64,7 +64,8 @@
                <!-- columns 1 to 4  -->
                <div class="col-md-6">
                   <label>Begins at</label>
-                  <input type="datetime-local" name="begin_date" id="begin_date" value="2021-01-01T00:00" />
+                  <input type=date name="begin_date" id="begin_date" value="2021-01-01" />
+                  <input type=time name="begin_time" id="begin_time" value="00:00" />
                </div>
                <!-- columns 5 to 10 -->
             </div>
@@ -102,7 +103,7 @@
                         <!-- Close time (read only, set by JavaScript function -->
                         <td><input name="close" type="datetime-local" readonly value="" /></td>
                         <!-- Notes (error messages for this row) -->
-                        <td class="notes"> &nbsp; </td>
+                        <td class="notes"> &nbsp;<p class="n">/p> </td>
                      </tr>
                      {% endfor %}
                   </table>
